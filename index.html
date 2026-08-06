@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disponibilità — Case Vacanze</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#edefe9;--surface:#fff;--surface-2:#f6f7f2;--ink:#182a25;--muted:#5e6f68;
+    --faint:#8a988f;--line:#dde3da;--line-strong:#c9d2c6;--brand:#216b57;--brand-ink:#123f33;
+    --brand-soft:#e3efe9;--today:#fbf3df;--shadow:0 1px 2px rgba(20,40,34,.05),0 8px 24px rgba(20,40,34,.06);
+    --radius:14px;--h1:'Fraunces',Georgia,serif;--ui:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{font-family:var(--ui);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:56px}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+  header.top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .top-inner{display:flex;align-items:center;gap:16px;padding:14px 0;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:11px;margin-right:auto}
+  .mark{width:38px;height:38px;border-radius:11px;flex:none;background:var(--brand);color:#fff;display:grid;place-items:center}
+  .mark svg{width:20px;height:20px}
+  .brand h1{font-family:var(--h1);font-weight:600;font-size:20px;margin:0;line-height:1.1;letter-spacing:-.01em}
+  .brand span{font-size:12.5px;color:var(--muted);display:block;font-weight:500}
+  .updated{font-size:12px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:6px 11px;border-radius:9px;white-space:nowrap;display:flex;align-items:center;gap:7px}
+  .updated .dot{width:8px;height:8px;border-radius:50%;background:#4fae7e}
+  .updated.stale .dot{background:#d3a53a}
+  .filters{display:flex;gap:6px;background:var(--surface-2);padding:4px;border-radius:11px;border:1px solid var(--line)}
+  .filters button{padding:7px 13px;border-radius:8px;font-size:13.5px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .filters button .dot{width:9px;height:9px;border-radius:50%}
+  .filters button.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(20,40,34,.12)}
+
+  .monthbar{display:flex;align-items:center;gap:14px;padding:22px 0 14px;flex-wrap:wrap}
+  .nav{display:flex;gap:4px}
+  .nav button{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--muted)}
+  .nav button:hover{color:var(--ink);border-color:var(--faint)}
+  .nav button svg{width:16px;height:16px}
+  .monthtitle{font-family:var(--h1);font-size:26px;font-weight:600;letter-spacing:-.02em;text-transform:capitalize;min-width:200px}
+  .btn{padding:9px 15px;border-radius:10px;font-size:13.5px;font-weight:600;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:7px}
+  .btn:hover{border-color:var(--faint);background:var(--surface-2)}
+  .legend{margin-left:auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+  .legend .lg{display:flex;align-items:center;gap:6px}
+  .legend .swatch{width:12px;height:12px;border-radius:4px}
+
+  .layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;padding-bottom:40px}
+  .cal{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .dow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);background:var(--surface-2)}
+  .dow div{padding:10px 12px;font-size:11.5px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+  .dow div+div{border-left:1px solid var(--line)}
+  .week{position:relative;border-bottom:1px solid var(--line)}
+  .week:last-child{border-bottom:none}
+  .week .days{display:grid;grid-template-columns:repeat(7,1fr)}
+  .day{min-height:104px;padding:8px 9px;position:relative;border-left:1px solid var(--line)}
+  .day:first-child{border-left:none}
+  .day .num{font-size:13px;font-weight:600;width:26px;height:26px;display:grid;place-items:center;border-radius:8px}
+  .day.out .num{color:var(--faint);font-weight:500}
+  .day.out{background:#fafbf9}
+  .day.today{background:var(--today)}
+  .day.today .num{background:var(--brand);color:#fff}
+  .bars{position:absolute;top:38px;left:0;right:0;bottom:6px;pointer-events:none}
+  .bar{position:absolute;height:24px;border-radius:7px;padding:0 9px;display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:#fff;overflow:hidden;white-space:nowrap;box-shadow:0 1px 2px rgba(20,40,34,.18)}
+  .bar.clip-l{border-top-left-radius:0;border-bottom-left-radius:0}
+  .bar.clip-r{border-top-right-radius:0;border-bottom-right-radius:0}
+  .bar .tag{font-size:9px;font-weight:800;opacity:.85;text-transform:uppercase;letter-spacing:.03em;background:rgba(255,255,255,.22);padding:1px 4px;border-radius:4px;flex:none}
+
+  .side{display:flex;flex-direction:column;gap:16px}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .panel h2{margin:0;padding:15px 18px 12px;font-family:var(--h1);font-size:16px;font-weight:600;display:flex;align-items:center;gap:9px}
+  .panel h2 svg{width:16px;height:16px;color:var(--brand)}
+  .panel .body{padding:4px 12px 14px}
+  .arr{display:flex;gap:11px;padding:9px 6px;border-radius:9px}
+  .arr .when{flex:none;width:44px;text-align:center}
+  .arr .when .d{font-size:19px;font-weight:700;font-family:var(--h1);line-height:1}
+  .arr .when .m{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--faint);letter-spacing:.04em}
+  .arr .info .g{font-weight:600;font-size:13.5px}
+  .arr .info .h{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:1px}
+  .arr .info .h .hc{width:8px;height:8px;border-radius:50%;flex:none}
+  .empty{padding:8px 12px 16px;color:var(--faint);font-size:13px;text-align:center;font-style:italic}
+  .stat{display:flex;justify-content:space-between;padding:6px}
+  .stat b{font-weight:600;font-size:13px}
+  .stat .v{font-family:var(--h1);font-weight:600}
+  .note{font-size:12px;color:var(--muted);background:var(--brand-soft);border:1px solid #cfe3d9;border-radius:12px;padding:12px 14px;line-height:1.45}
+  .note b{color:var(--brand-ink)}
+
+  @media(max-width:900px){.layout{grid-template-columns:1fr}.legend{width:100%;margin:6px 0 0}.brand{margin-right:0}.day{min-height:88px}}
+  @media(max-width:560px){.wrap{padding:0 12px}.monthtitle{font-size:22px;min-width:0}.day{min-height:74px;padding:6px}.day .num{width:22px;height:22px;font-size:12px}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/></svg></div>
+      <div><h1>Disponibilità Case</h1><span>Le due case in un colpo d'occhio</span></div>
+    </div>
+    <div class="updated" id="updated"><span class="dot"></span><span id="updatedText">—</span></div>
+    <div class="filters" id="filters"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="monthbar">
+    <div class="nav">
+      <button onclick="changeMonth(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <button onclick="changeMonth(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
+    <div class="monthtitle" id="monthTitle"></div>
+    <button class="btn" onclick="goToday()">Oggi</button>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="layout">
+    <main class="cal">
+      <div class="dow"><div>Lun</div><div>Mar</div><div>Mer</div><div>Gio</div><div>Ven</div><div>Sab</div><div>Dom</div></div>
+      <div id="weeks"></div>
+    </main>
+    <aside class="side">
+      <div class="panel">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><path d="m8 5 4-3 4 3"/><path d="M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-7"/><path d="M3 12h18"/></svg>Prossimi arrivi</h2>
+        <div class="body" id="arrivals"></div>
+      </div>
+      <div class="panel">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V16"/><path d="m8 19 4 3 4-3"/><path d="M20 12V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v7"/><path d="M3 12h18"/></svg>In partenza</h2>
+        <div class="body" id="departures"></div>
+      </div>
+      <div class="panel">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="4" width="3" height="14"/></svg>Questo mese</h2>
+        <div class="body" id="stats"></div>
+      </div>
+      <div class="note" id="storageNote"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* ====================================================================
+   CONFIGURAZIONE — modifica qui i nomi e i colori delle tue case.
+   Gli "id" (h1, h2) devono restare uguali a quelli in data.json.
+   ==================================================================== */
+const HOUSES = [
+  { id:'h1', name:'Casa 1', color:'#b5533b' },
+  { id:'h2', name:'Casa 2', color:'#35668f' }
+];
+
+/* Dati di esempio, mostrati finché data.json non è disponibile
+   (es. nell'anteprima). Una volta pubblicata su GitHub, l'app
+   usa il vero data.json aggiornato da Booking. */
+function offset(n){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+n);return fmt(d);}
+const DEMO = { updated:null, houses:{
+  h1:[{start:offset(2),end:offset(6)},{start:offset(9),end:offset(12)}],
+  h2:[{start:offset(1),end:offset(4)},{start:offset(14),end:offset(17)}]
+}};
+
+/* ---------------- state ---------------- */
+let DATA = DEMO, isDemo = true;
+let viewDate = new Date();
+let filterHouse = 'all';
+
+/* ---------------- date helpers ---------------- */
+const MS=86400000;
+function pd(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function fmt(dt){return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
+function addDays(dt,n){const x=new Date(dt);x.setDate(x.getDate()+n);return x;}
+function diffDays(a,b){return Math.round((b-a)/MS);}
+function startOfDay(dt){return new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());}
+function mondayOf(dt){const x=startOfDay(dt);const w=(x.getDay()+6)%7;return addDays(x,-w);}
+const MONTHS=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const MON_SHORT=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+function houseById(id){return HOUSES.find(h=>h.id===id)||{name:'?',color:'#999'};}
+
+function allBookings(){
+  const list=[];
+  HOUSES.forEach(h=>{(DATA.houses[h.id]||[]).forEach(r=>list.push({houseId:h.id,start:r.start,end:r.end}));});
+  return list;
+}
+
+/* ---------------- filters & legend ---------------- */
+function renderFilters(){
+  document.getElementById('filters').innerHTML =
+    `<button class="${filterHouse==='all'?'active':''}" onclick="setFilter('all')">Tutte</button>`+
+    HOUSES.map(h=>`<button class="${filterHouse===h.id?'active':''}" onclick="setFilter('${h.id}')"><span class="dot" style="background:${h.color}"></span>${esc(h.name)}</button>`).join('');
+  document.getElementById('legend').innerHTML =
+    HOUSES.map(h=>`<span class="lg"><span class="swatch" style="background:${h.color}"></span>${esc(h.name)}</span>`).join('');
+}
+function setFilter(f){filterHouse=f;renderFilters();render();}
+
+/* ---------------- calendar ---------------- */
+function render(){
+  const y=viewDate.getFullYear(),m=viewDate.getMonth();
+  document.getElementById('monthTitle').textContent=MONTHS[m]+' '+y;
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  const gridStart=mondayOf(first),gridEnd=addDays(mondayOf(last),7);
+  const weeksCount=diffDays(gridStart,gridEnd)/7;
+  const today=startOfDay(new Date());
+  const active=allBookings().filter(b=>filterHouse==='all'||b.houseId===filterHouse);
+
+  let html='';
+  for(let w=0;w<weeksCount;w++){
+    const weekStart=addDays(gridStart,w*7),weekEnd=addDays(weekStart,7);
+    let cells='';
+    for(let d=0;d<7;d++){
+      const day=addDays(weekStart,d);
+      const out=day.getMonth()!==m, isToday=day.getTime()===today.getTime();
+      cells+=`<div class="day ${out?'out':''} ${isToday?'today':''}"><div class="num">${day.getDate()}</div></div>`;
+    }
+    const segs=[];
+    active.forEach(b=>{
+      const bs=pd(b.start),be=pd(b.end);
+      if(be>weekStart&&bs<weekEnd){
+        const s=bs>weekStart?bs:weekStart,e=be<weekEnd?be:weekEnd;
+        segs.push({b,col:diffDays(weekStart,s),span:diffDays(s,e),clipL:bs<weekStart,clipR:be>weekEnd});
+      }
+    });
+    const lanes=[];
+    segs.sort((a,b)=>a.col-b.col||b.span-a.span);
+    segs.forEach(s=>{let l=0;while(lanes[l]&&lanes[l]>s.col)l++;s.lane=l;lanes[l]=s.col+s.span;});
+    let bars='';
+    segs.forEach(s=>{
+      const h=houseById(s.b.houseId);
+      bars+=`<div class="bar ${s.clipL?'clip-l':''} ${s.clipR?'clip-r':''}" style="left:${s.col/7*100}%;width:calc(${s.span/7*100}% - 6px);margin-left:3px;top:${s.lane*28}px;background:${h.color}" title="${esc(h.name)}: ${s.b.start} → ${s.b.end}">${!s.clipL?'<span class="tag">Booking</span>':''}<span>${esc(h.name)}</span></div>`;
+    });
+    const barH=38+(lanes.length||1)*28+6;
+    html+=`<div class="week" style="min-height:${Math.max(104,barH)}px"><div class="days">${cells}</div><div class="bars">${bars}</div></div>`;
+  }
+  document.getElementById('weeks').innerHTML=html;
+  renderSide();
+}
+
+function renderSide(){
+  const today=startOfDay(new Date()),horizon=addDays(today,30);
+  const active=allBookings().filter(b=>filterHouse==='all'||b.houseId===filterHouse);
+  const arr=active.filter(b=>{const s=pd(b.start);return s>=today&&s<horizon;}).sort((a,b)=>pd(a.start)-pd(b.start));
+  const dep=active.filter(b=>{const e=pd(b.end);return e>=today&&e<horizon;}).sort((a,b)=>pd(a.end)-pd(b.end));
+  document.getElementById('arrivals').innerHTML=arr.length?arr.map(b=>rowHtml(b,pd(b.start))).join(''):`<div class="empty">Nessun arrivo nei prossimi 30 giorni</div>`;
+  document.getElementById('departures').innerHTML=dep.length?dep.map(b=>rowHtml(b,pd(b.end))).join(''):`<div class="empty">Nessuna partenza nei prossimi 30 giorni</div>`;
+
+  const y=viewDate.getFullYear(),m=viewDate.getMonth();
+  const mStart=new Date(y,m,1),mEnd=new Date(y,m+1,1);
+  let nights=0,count=0;
+  active.forEach(b=>{const s=pd(b.start),e=pd(b.end);const a=s>mStart?s:mStart,z=e<mEnd?e:mEnd;const n=diffDays(a,z);if(n>0){nights+=n;count++;}});
+  const hc=filterHouse==='all'?HOUSES.length:1;
+  const dim=diffDays(mStart,mEnd);
+  const occ=hc>0?Math.round(nights/(dim*hc)*100):0;
+  document.getElementById('stats').innerHTML=
+    `<div class="stat"><b>Prenotazioni</b><span class="v">${count}</span></div>
+     <div class="stat"><b>Notti occupate</b><span class="v">${nights}</span></div>
+     <div class="stat"><b>Occupazione</b><span class="v">${occ}%</span></div>`;
+}
+function rowHtml(b,dt){const h=houseById(b.houseId);
+  return `<div class="arr"><div class="when"><div class="d">${dt.getDate()}</div><div class="m">${MON_SHORT[dt.getMonth()]}</div></div>
+    <div class="info"><div class="g">${esc(h.name)}</div><div class="h"><span class="hc" style="background:${h.color}"></span>${b.start} → ${b.end}</div></div></div>`;
+}
+
+function changeMonth(n){viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+n,1);render();}
+function goToday(){viewDate=new Date();render();}
+function esc(s){return(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ---------------- updated badge ---------------- */
+function showUpdated(){
+  const el=document.getElementById('updated'),t=document.getElementById('updatedText');
+  const note=document.getElementById('storageNote');
+  if(isDemo){
+    t.textContent='Dati di esempio';el.classList.add('stale');
+    note.innerHTML=`<b>Anteprima con dati di esempio.</b> Una volta pubblicata su GitHub e collegato Booking, qui compaiono le prenotazioni reali, aggiornate in automatico ogni poche ore.`;
+    return;
+  }
+  const d=DATA.updated?new Date(DATA.updated):null;
+  if(d){
+    const hrs=(Date.now()-d.getTime())/3600000;
+    t.textContent='Aggiornato '+d.toLocaleString('it-IT',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    el.classList.toggle('stale',hrs>8);
+  }else t.textContent='Aggiornato';
+  note.innerHTML=`<b>Aggiornamento automatico.</b> Le date arrivano dal calendario Booking delle tue case e si aggiornano da sole ogni poche ore. Non serve fare nulla a mano.`;
+}
+
+/* ---------------- load real data ---------------- */
+fetch('./data.json',{cache:'no-store'})
+  .then(r=>{if(!r.ok)throw 0;return r.json();})
+  .then(json=>{if(json&&json.houses){DATA=json;isDemo=false;}})
+  .catch(()=>{/* resta in modalità demo */})
+  .finally(()=>{renderFilters();showUpdated();render();});
+</script>
+</body>
+</html>
