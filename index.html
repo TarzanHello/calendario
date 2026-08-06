@@ -208,21 +208,24 @@ function render(){
       const out=day.getMonth()!==m, isToday=day.getTime()===today.getTime();
       cells+=`<div class="day ${out?'out':''} ${isToday?'today':''}"><div class="num">${day.getDate()}</div></div>`;
     }
+    // Coordinate frazionarie: la barra va da METÀ giorno di check-in
+    // a METÀ giorno di check-out (come i pallini di Booking). Così il
+    // giorno di partenza resta mezzo occupato e i cambi si vedono.
     const segs=[];
     active.forEach(b=>{
       const bs=pd(b.start),be=pd(b.end);
-      if(be>weekStart&&bs<weekEnd){
-        const s=bs>weekStart?bs:weekStart,e=be<weekEnd?be:weekEnd;
-        segs.push({b,col:diffDays(weekStart,s),span:diffDays(s,e),clipL:bs<weekStart,clipR:be>weekEnd});
-      }
+      const visStart=diffDays(weekStart,bs)+0.5, visEnd=diffDays(weekStart,be)+0.5;
+      const s=Math.max(visStart,0), e=Math.min(visEnd,7);
+      if(e>s+0.01) segs.push({b,start:s,end:e,clipL:visStart<0,clipR:visEnd>7});
     });
     const lanes=[];
-    segs.sort((a,b)=>a.col-b.col||b.span-a.span);
-    segs.forEach(s=>{let l=0;while(lanes[l]&&lanes[l]>s.col)l++;s.lane=l;lanes[l]=s.col+s.span;});
+    segs.sort((a,b)=>a.start-b.start||(b.end-b.start)-(a.end-a.start));
+    segs.forEach(s=>{let l=0;while(lanes[l]!==undefined&&lanes[l]>s.start+1e-6)l++;s.lane=l;lanes[l]=s.end;});
     let bars='';
     segs.forEach(s=>{
       const h=houseById(s.b.houseId);
-      bars+=`<div class="bar ${s.clipL?'clip-l':''} ${s.clipR?'clip-r':''}" style="left:${s.col/7*100}%;width:calc(${s.span/7*100}% - 6px);margin-left:3px;top:${s.lane*28}px;background:${h.color}" title="${esc(h.name)}: ${s.b.start} → ${s.b.end}">${!s.clipL?'<span class="tag">Booking</span>':''}<span>${esc(h.name)}</span></div>`;
+      const left=s.start/7*100, width=(s.end-s.start)/7*100;
+      bars+=`<div class="bar ${s.clipL?'clip-l':''} ${s.clipR?'clip-r':''}" style="left:${left}%;width:calc(${width}% - 4px);margin-left:2px;top:${s.lane*28}px;background:${h.color}" title="${esc(h.name)}: ${s.b.start} → ${s.b.end}">${!s.clipL?'<span class="tag">Booking</span>':''}<span>${esc(h.name)}</span></div>`;
     });
     const barH=38+(lanes.length||1)*28+6;
     html+=`<div class="week" style="min-height:${Math.max(104,barH)}px"><div class="days">${cells}</div><div class="bars">${bars}</div></div>`;
