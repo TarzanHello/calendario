@@ -83,6 +83,11 @@
   .stat{display:flex;justify-content:space-between;padding:6px}
   .stat b{font-weight:600;font-size:13px}
   .stat .v{font-family:var(--h1);font-weight:600}
+  .strow{display:flex;align-items:center;gap:9px;padding:6px 6px;font-size:13px}
+  .strow .sdot{width:9px;height:9px;border-radius:50%;flex:none}
+  .strow .sdot.ok{background:#4fae7e}.strow .sdot.ko{background:#d3a53a}
+  .strow .sname{font-weight:600}
+  .strow .sinfo{margin-left:auto;color:var(--muted);font-size:11.5px;text-align:right}
   .note{font-size:12px;color:var(--muted);background:var(--brand-soft);border:1px solid #cfe3d9;border-radius:12px;padding:12px 14px;line-height:1.45}
   .note b{color:var(--brand-ink)}
 
@@ -132,6 +137,10 @@
         <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="4" width="3" height="14"/></svg>Questo mese</h2>
         <div class="body" id="stats"></div>
       </div>
+      <div class="panel" id="statusPanel" style="display:none">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>Stato aggiornamento</h2>
+        <div class="body" id="statusBody"></div>
+      </div>
       <div class="note" id="storageNote"></div>
     </aside>
   </div>
@@ -143,8 +152,8 @@
    Gli "id" (h1, h2) devono restare uguali a quelli in data.json.
    ==================================================================== */
 const HOUSES = [
-  { id:'h1', name:'Arriano', color:'#b5533b' },
-  { id:'h2', name:'Labieno', color:'#35668f' }
+  { id:'h1', name:'Casa 1', color:'#b5533b' },
+  { id:'h2', name:'Casa 2', color:'#35668f' }
 ];
 
 /* Dati di esempio, mostrati finché data.json non è disponibile
@@ -280,6 +289,20 @@ function showUpdated(){
   }else t.textContent='Aggiornato';
   note.innerHTML=`<b>Aggiornamento automatico.</b> Le date arrivano dal calendario Booking delle tue case e si aggiornano da sole ogni poche ore. Non serve fare nulla a mano.`;
 }
+
+/* ---------------- stato ultimo aggiornamento ---------------- */
+function showStatus(st){
+  if(!st||!st.houses)return;
+  const panel=document.getElementById('statusPanel'), body=document.getElementById('statusBody');
+  let rows='';
+  HOUSES.forEach(h=>{
+    const s=st.houses[h.id]; if(!s)return;
+    rows+=`<div class="strow"><span class="sdot ${s.ok?'ok':'ko'}"></span><span class="sname">${esc(h.name)}</span><span class="sinfo">${s.ok?s.count+' prenotazioni':esc(s.info||'errore')}</span></div>`;
+  });
+  body.innerHTML=rows;
+  panel.style.display='block';
+}
+fetch('./status.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(showStatus).catch(()=>{});
 
 /* ---------------- load real data ---------------- */
 fetch('./data.json',{cache:'no-store'})

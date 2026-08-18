@@ -1,0 +1,33 @@
+name: Aggiorna disponibilità da Booking
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'   # ogni 3 ore
+  workflow_dispatch:          # + pulsante per lanciarlo a mano
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Scarica i calendari Booking
+        env:
+          BOOKING_ICAL_H1: ${{ secrets.BOOKING_ICAL_H1 }}
+          BOOKING_ICAL_H2: ${{ secrets.BOOKING_ICAL_H2 }}
+        run: node scripts/sync.mjs
+
+      - name: Salva se cambiato
+        run: |
+          git config user.name "calendar-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json status.json log.txt
+          git diff --staged --quiet || git commit -m "Aggiorna disponibilità e log"
+          git push
